@@ -504,6 +504,49 @@
         .badge--sip { background: #dbeafe; color: #1e40af; }
         .badge--lumpsum { background: #fee2e2; color: #991b1b; }
 
+        /* Auth Screen */
+        .auth-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .auth-box {
+            background: var(--color-surface);
+            padding: var(--space-32);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+        .auth-box h2 {
+            margin-bottom: var(--space-16);
+        }
+        .auth-box p {
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-24);
+        }
+        #login-btn {
+            width: 100%;
+        }
+        #login-btn svg {
+            margin-right: var(--space-8);
+        }
+
+        /* User Profile */
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--space-12);
+            position: absolute;
+            top: var(--space-24);
+            right: var(--space-24);
+        }
+        .user-profile span {
+            font-weight: var(--font-weight-medium);
+        }
+
         @font-face {
           font-family: 'FKGroteskNeue';
           src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2') format('woff2');
@@ -511,93 +554,115 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <h1>Mutual Fund Investment Tracker</h1>
-            <p class="subtitle" id="user-id-display" style="display: none;">Your data is saved securely. User ID: <code id="user-id-value"></code></p>
-        </header>
+    <!-- App Container -->
+    <div id="app-container" style="display: none;">
+        <div class="container">
+            <!-- Header -->
+            <header class="header">
+                 <div class="user-profile" id="user-profile" style="display: none;">
+                    <span id="user-name"></span>
+                    <button class="btn btn--outline btn--sm" id="logout-btn">Logout</button>
+                </div>
+                <h1>Mutual Fund Investment Tracker</h1>
+                <p class="subtitle">Track your SIP &amp; Lumpsum investments with real-time P&amp;L</p>
+            </header>
 
-        <!-- Summary Cards -->
-        <div class="summary-grid">
-            <div class="summary-card">
-                <div class="summary-label">Total Invested</div>
-                <div class="summary-value" id="totalInvested">₹0</div>
+            <!-- Summary Cards -->
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <div class="summary-label">Total Invested</div>
+                    <div class="summary-value" id="totalInvested">₹0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Current Value</div>
+                    <div class="summary-value" id="currentValue">₹0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Total P&L</div>
+                    <div class="summary-value" id="totalPL">₹0</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">Total P&L %</div>
+                    <div class="summary-value" id="totalPLPercent">0%</div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-label">XIRR</div>
+                    <div class="summary-value" id="totalXIRR">0%</div>
+                </div>
             </div>
-            <div class="summary-card">
-                <div class="summary-label">Current Value</div>
-                <div class="summary-value" id="currentValue">₹0</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-label">Total P&L</div>
-                <div class="summary-value" id="totalPL">₹0</div>
-            </div>
-             <div class="summary-card">
-                <div class="summary-label">Total P&L %</div>
-                <div class="summary-value" id="totalPLPercent">0%</div>
-            </div>
-            <div class="summary-card">
-                <div class="summary-label">XIRR</div>
-                <div class="summary-value" id="totalXIRR">0%</div>
-            </div>
-        </div>
 
-        <!-- Search and Filter Section -->
-        <div class="search-filter-section">
-            <div class="search-input-wrapper">
-                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>
-                </svg>
-                <input type="text" id="searchInput" class="search-input" placeholder="Search by fund name, AMC, or AMFI code...">
-                <button id="clearSearch" class="clear-search" style="display: none;">&times;</button>
+            <!-- Search and Filter Section -->
+            <div class="search-filter-section">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" id="searchInput" class="search-input" placeholder="Search by fund name, AMC, or AMFI code...">
+                    <button id="clearSearch" class="clear-search" style="display: none;">&times;</button>
+                </div>
+                
+                <div class="filter-controls">
+                    <div class="filter-group">
+                        <label class="filter-label">Type:</label>
+                        <select id="typeFilter" class="filter-select">
+                            <option value="">All Types</option><option value="SIP">SIP</option><option value="Lumpsum">Lumpsum</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Category:</label>
+                        <select id="categoryFilter" class="filter-select">
+                            <option value="">All Categories</option><option value="Equity">Equity</option><option value="Debt">Debt</option><option value="Hybrid">Hybrid</option><option value="Liquid">Liquid</option><option value="ELSS">ELSS</option><option value="Balanced">Balanced</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">AMC:</label>
+                        <select id="amcFilter" class="filter-select"><option value="">All AMCs</option></select>
+                    </div>
+                    <button id="clearFilters" class="btn btn--outline btn--sm">Clear Filters</button>
+                </div>
             </div>
             
-            <div class="filter-controls">
-                <div class="filter-group">
-                    <label class="filter-label">Type:</label>
-                    <select id="typeFilter" class="filter-select">
-                        <option value="">All Types</option><option value="SIP">SIP</option><option value="Lumpsum">Lumpsum</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">Category:</label>
-                    <select id="categoryFilter" class="filter-select">
-                        <option value="">All Categories</option><option value="Equity">Equity</option><option value="Debt">Debt</option><option value="Hybrid">Hybrid</option><option value="Liquid">Liquid</option><option value="ELSS">ELSS</option><option value="Balanced">Balanced</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label class="filter-label">AMC:</label>
-                    <select id="amcFilter" class="filter-select"><option value="">All AMCs</option></select>
-                </div>
-                <button id="clearFilters" class="btn btn--outline btn--sm">Clear Filters</button>
-            </div>
-        </div>
-        
-        <div class="active-filters" id="activeFilters" style="display: none;"></div>
-        <div class="results-count" id="resultsCount"></div>
+            <div class="active-filters" id="activeFilters" style="display: none;"></div>
+            <div class="results-count" id="resultsCount"></div>
 
-        <!-- Action Buttons -->
-        <div class="action-bar">
-            <button class="btn btn--primary" id="addInvestmentBtn">Add Investment</button>
-            <button class="btn btn--outline" id="exportDataBtn">Export Data</button>
-            <label class="btn btn--outline" for="importDataInput">Import Data</label>
-            <input type="file" id="importDataInput" accept=".json" style="display: none;">
-            <button class="btn btn--secondary" id="refreshNAVBtn">Refresh NAV</button>
-        </div>
-
-        <!-- Investments Section -->
-        <div class="investments-section">
-            <h2>Your Investments</h2>
-            <div class="investments-grid" id="investmentsGrid">
-                <!-- Investment cards are rendered here by JavaScript -->
+            <!-- Action Buttons -->
+            <div class="action-bar">
+                <button class="btn btn--primary" id="addInvestmentBtn">Add Investment</button>
+                <button class="btn btn--outline" id="exportDataBtn">Export Data</button>
+                <label class="btn btn--outline" for="importDataInput">Import Data</label>
+                <input type="file" id="importDataInput" accept=".json" style="display: none;">
+                <button class="btn btn--secondary" id="refreshNAVBtn">Refresh NAV</button>
             </div>
-            <div class="empty-state" id="emptyState" style="display: none;">
-                <div class="empty-icon">📊</div>
-                <h3>No Investments Yet</h3>
-                <p>Add your first investment to start tracking your portfolio</p>
+
+            <!-- Investments Section -->
+            <div class="investments-section">
+                <h2>Your Investments</h2>
+                <div class="investments-grid" id="investmentsGrid">
+                    <!-- Investment cards are rendered here by JavaScript -->
+                </div>
+                <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-icon">📊</div>
+                    <h3>No Investments Yet</h3>
+                    <p>Add your first investment to start tracking your portfolio</p>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Auth Container -->
+    <div id="auth-container" class="auth-container" style="display: none;">
+        <div class="auth-box">
+            <h2>Welcome to your MF Tracker</h2>
+            <p>Sign in with your Google account to securely save and access your investments from any device.</p>
+            <button class="btn btn--primary" id="login-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                </svg>
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+
 
     <!-- Add/Edit Investment Modal -->
     <div class="modal-overlay" id="investmentModal">
@@ -702,12 +767,11 @@
     <script type="module">
         // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, onSnapshot, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // IMPORTANT: Replace with your Firebase project configuration
         // You can get this from the Firebase console
-        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         // For Firebase JS SDK v7.20.0 and later, measurementId is optional
         const firebaseConfig = {
           apiKey: "AIzaSyAPkhmeau8M_iJAgqXkbr_ItJ236wWN9iw",
@@ -739,9 +803,6 @@
             async init(db, user) {
                 this.db = db;
                 this.userId = user.uid;
-
-                document.getElementById('user-id-value').textContent = this.userId;
-                document.getElementById('user-id-display').style.display = 'block';
 
                 this.setupEventListeners();
                 this.populateSipDays();
@@ -1481,11 +1542,9 @@
         }
         
         // --- Firebase Initialization and App Start ---
-        async function initializeAppAndAuth() {
+        function initializeAppAndAuth() {
             let app, auth, db;
             
-            // This pattern allows the app to work with a globally provided config (e.g. in Canvas)
-            // or fall back to the one defined in this script.
             const finalFirebaseConfig = typeof __firebase_config !== 'undefined' 
                 ? JSON.parse(__firebase_config) 
                 : firebaseConfig;
@@ -1501,29 +1560,58 @@
             }
 
             const appInstance = new InvestmentTracker();
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const authContainer = document.getElementById('auth-container');
+            const appContainer = document.getElementById('app-container');
+            const userProfile = document.getElementById('user-profile');
+            const userName = document.getElementById('user-name');
+
+            const handleLogin = async () => {
+                const provider = new GoogleAuthProvider();
+                try {
+                    await signInWithPopup(auth, provider);
+                    // onAuthStateChanged will handle the rest
+                } catch (error) {
+                    console.error("Google Sign-In failed:", error);
+                    appInstance.showToast("Could not sign in with Google.", "error");
+                }
+            };
+
+            const handleLogout = async () => {
+                try {
+                    await signOut(auth);
+                    // onAuthStateChanged will handle the rest
+                } catch (error) {
+                    console.error("Sign out failed:", error);
+                }
+            };
+            
+            loginBtn.addEventListener('click', handleLogin);
+            logoutBtn.addEventListener('click', handleLogout);
 
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // User is signed in.
-                    await appInstance.init(db, user);
+                    // User is signed in
+                    authContainer.style.display = 'none';
+                    appContainer.style.display = 'block';
+                    userName.textContent = user.displayName || 'User';
+                    userProfile.style.display = 'flex';
+                    
+                    if (appInstance.userId !== user.uid) { // Initialize or re-initialize if user changes
+                       await appInstance.init(db, user);
+                    }
                 } else {
-                    // User is signed out. Attempt to sign in.
-                    try {
-                        const loadingOverlay = document.getElementById('loadingOverlay');
-                        loadingOverlay.querySelector('p').textContent = 'Connecting to secure session...';
-                        loadingOverlay.classList.add('active');
-
-                        // Use custom token if provided (e.g., in Canvas environment)
-                        if (typeof __initial_auth_token !== 'undefined') {
-                            await signInWithCustomToken(auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(auth);
-                        }
-                        // The onAuthStateChanged listener will handle the new user state.
-                        loadingOverlay.classList.remove('active');
-                    } catch (error) {
-                        console.error("Anonymous sign-in failed: ", error);
-                        document.body.innerHTML = '<h1>Error: Could not create a secure session.</h1>';
+                    // User is signed out
+                    appContainer.style.display = 'none';
+                    authContainer.style.display = 'flex';
+                    userProfile.style.display = 'none';
+                    if (appInstance.unsubscribe) {
+                        appInstance.unsubscribe();
+                        appInstance.unsubscribe = null;
+                        appInstance.investments = [];
+                        appInstance.applyFilters();
+                        appInstance.updateSummary();
                     }
                 }
             });
